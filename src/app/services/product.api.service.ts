@@ -24,14 +24,19 @@ export class ProductsService {
   }
 
   addProduct(product: Product): Observable<any> {
-    return this.http.post(`${this.apiUrl}/add-product`, product);
+    return this.http.post(`${this.apiUrl}/add-products`, product);
   }
 
-  editProduct( product: Product): Observable<any> {
+  editProduct(product: Product): Observable<any> {
     return this.http.put(`${this.apiUrl}/edit-products/`, product);
   }
 
   deleteProduct(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/delete-product/${id}`);
   }
+
+  getProductByFilter(searchType: string, searchValue: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.apiUrl}/getProductsByFilter/${searchType}/${searchValue}`);
+  }
+
 }

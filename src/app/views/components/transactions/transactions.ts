@@ -1,27 +1,26 @@
+import { CommonModule } from '@angular/common';
+import { HttpClientModule } from '@angular/common/http';
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-
-import { HttpClientModule } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
-import { AddComponent } from './add/add';
+import { Transactions, TransactionsService } from '../../../services/transactions.api.service';
 import { MatDialog } from '@angular/material/dialog';
-import { FormsModule } from '@angular/forms';
-import { Product, ProductsService } from '../../../services/product.api.service';
+import { AddComponent } from './add/add';
 
 @Component({
-  selector: 'zm-products',
+  selector: 'zm-transactions',
   imports: [MatTabsModule, MatCardModule, HttpClientModule, CommonModule, FormsModule],
-  standalone: true,
-  templateUrl: './products.html',
-  styleUrl: './products.scss',
-  providers: [ProductsService]
+  templateUrl: './transactions.html',
+  styleUrl: './transactions.scss',
+  providers: [TransactionsService]
 })
-export class ProductsComponent {
-  totalProducts: number = 0;
-  products: Product[] = [];
-  filteredProducts: Product[] = [];
-  pagedProducts: Product[] = [];
+export class TransactionsComponent {
+
+  totalTransactions: number = 0;
+  transactions: Transactions[] = [];
+  filteredTransactions: Transactions[] = [];
+  pagedTransactions: Transactions[] = [];
   searchTerm: string = '';
   searchby: string = '';
   currentPage: number = 1;
@@ -32,7 +31,7 @@ export class ProductsComponent {
   /**
    *
    */
-  constructor(private api: ProductsService, private dialog: MatDialog) {
+  constructor(private api: TransactionsService, private dialog: MatDialog) {
 
   }
 
@@ -42,26 +41,30 @@ export class ProductsComponent {
 
 
   loadProducts(): void {
-    this.api.getAllProducts().subscribe({
+    this.api.getAllTransactions().subscribe({
       next: (data) => {
-        this.products = data;
+
+        this.transactions = data;
+        console.log("Transactions fetched successfully:", this.transactions);
         this.filterProducts();
       },
-      error: (err) => console.error('Error fetching products', err)
+      error: (err) => console.error('Error fetching transactions', err)
     });
   }
 
   filterProducts(): void {
     const term = this.searchTerm.trim().toLowerCase();
-    this.filteredProducts = term
-      ? this.products.filter(p =>
-        p.name.toLowerCase().includes(term) ||
-        (p.description || '').toLowerCase().includes(term) ||
-        p.category.toLowerCase().includes(term)
+    this.filteredTransactions = term
+      ? this.transactions.filter(t =>
+        t.detail.toLowerCase().includes(term) ||
+        (t.transactionType || '').toLowerCase().includes(term) ||
+        t.quantity.toString().includes(term) ||
+        t.unitPrice.toString().includes(term) ||
+        t.totalPrice.toString().includes(term)
       )
-      : [...this.products];
-    this.totalProducts = this.filteredProducts.length;
-    this.totalPages = Math.max(1, Math.ceil(this.totalProducts / this.pageSize));
+      : [...this.transactions];
+    this.totalTransactions = this.filteredTransactions.length;
+    this.totalPages = Math.max(1, Math.ceil(this.totalTransactions / this.pageSize));
     this.currentPage = Math.min(this.currentPage, this.totalPages);
     this.updatePagedProducts();
   }
@@ -69,7 +72,7 @@ export class ProductsComponent {
   updatePagedProducts(): void {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
-    this.pagedProducts = this.filteredProducts.slice(start, end);
+    this.pagedTransactions = this.filteredTransactions.slice(start, end);
   }
 
   nextPage(): void {
@@ -87,17 +90,17 @@ export class ProductsComponent {
   }
 
 
-  editProduct(product: Product): void {
+  editProduct(transactions: Transactions): void {
     const dialogRef = this.dialog.open(AddComponent, {
       width: '500px',
-      data: { product }
+      data: { transactions }
     });
 
-    dialogRef.afterClosed().subscribe((result: Product | undefined) => {
+    dialogRef.afterClosed().subscribe((result: Transactions | undefined) => {
       if (result) {
         console.log("result", result);
 
-        this.api.editProduct(result).subscribe({
+        this.api.editTransaction(result).subscribe({
           next: () => this.loadProducts(),
           error: err => console.error('Error al editar', err)
         });
@@ -123,9 +126,9 @@ export class ProductsComponent {
   deleteProduct(productId: number): void {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
-    this.api.deleteProduct(productId).subscribe({
+    this.api.deleteTransaction(productId).subscribe({
       next: () => {
-        console.log('Product deleted');
+        console.log('Transactions deleted');
         this.loadProducts();
 
 
@@ -135,14 +138,15 @@ export class ProductsComponent {
   }
 
   search() {
-    if (this.searchby.trim() === '') {
+
+    if (this.searchType.trim() === '') {
       this.loadProducts();
       return;
     }
 
-    this.api.getProductByFilter(this.searchType, this.searchby).subscribe({
+    this.api.getTransactionByFilter(this.searchType).subscribe({
       next: (data) => {
-        this.products = data;
+        this.transactions = data;
         this.filterProducts();
       },
       error: (err) => console.error('Error ', err)

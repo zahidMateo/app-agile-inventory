@@ -1,0 +1,43 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface Transactions {
+    transactionID: number;
+    date: Date;
+    transactionType?: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    detail: string;
+}
+
+@Injectable({
+    providedIn: 'root'
+})
+export class TransactionsService {
+    private apiUrl = 'https://localhost:7163/api/Transaction';
+
+    constructor(private http: HttpClient) { }
+
+    getAllTransactions(): Observable<Transactions[]> {
+        return this.http.get<Transactions[]>(`${this.apiUrl}/get-allTransactions`);
+    }
+
+    addTransaction(transaction: Transactions): Observable<any> {
+        return this.http.post(`${this.apiUrl}/add-transactions`, transaction);
+    }
+
+    editTransaction(transaction: Transactions): Observable<any> {
+        return this.http.put(`${this.apiUrl}/edit-transactions/`, transaction);
+    }
+
+    deleteTransaction(id: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/delete-transactions/${id}`);
+    }
+
+    getTransactionByFilter(searchType: string): Observable<Transactions[]> {
+        return this.http.get<Transactions[]>(`${this.apiUrl}/getTransactionsByFilter/${searchType}`);
+    }
+
+}

@@ -1,0 +1,69 @@
+<div class="container p-5">
+  <div class="col-6 col-md-12">
+    <h1>Agregar / Editar</h1>
+    <form [formGroup]="productForm" (ngSubmit)="save()">
+      <div class="mb-3">
+        <label for="detail" class="form-label">Detalles</label>
+        <input
+          type="text"
+          class="form-control"
+          id="detail"
+          formControlName="detail"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="quantity" class="form-label">Cantidad</label>
+        <input
+          type="number"
+          class="form-control"
+          id="quantity"
+          formControlName="quantity"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="unitPrice" class="form-label">Precio Unitario</label>
+        <input
+          type="number"
+          class="form-control"
+          id="unitPrice"
+          formControlName="unitPrice"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="transactionType" class="form-label"
+          >Tipo de transaccion</label
+        >
+        <select
+          class="form-select"
+          id="transactionType"
+          formControlName="transactionType"
+        >
+          <option value="">Seleccione...</option>
+          <option value="Compra">Compra</option>
+          <option value="Venta">Venta</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label for="totalPrice" class="form-label">Precio Total</label>
+        <input
+          type="number"
+          class="form-control"
+          id="totalPrice"
+          formControlName="totalPrice"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="productForm.invalid"
+      >
+        Guardar
+      </button>
+    </form>
+  </div>
+</div>
