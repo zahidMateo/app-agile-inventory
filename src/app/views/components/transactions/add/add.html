@@ -1,69 +1,134 @@
-<div class="container p-5">
-  <div class="col-6 col-md-12">
-    <h1>Agregar / Editar</h1>
-    <form [formGroup]="productForm" (ngSubmit)="save()">
-      <div class="mb-3">
-        <label for="detail" class="form-label">Detalles</label>
-        <input
-          type="text"
-          class="form-control"
-          id="detail"
-          formControlName="detail"
-        />
+<!-- Modal -->
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" *ngIf="data.isAdd" >Nueva Transacción de Inventario</h5>
+        <h5 class="modal-title" *ngIf="!data.isAdd">Editar Transacción de Inventario</h5>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Close"
+          (click)="close()"
+        ></button>
       </div>
+      <div class="modal-body">
+        <p class="text-muted">
+          Registra un movimiento de entrada, salida o ajuste de inventario
+        </p>
 
-      <div class="mb-3">
-        <label for="quantity" class="form-label">Cantidad</label>
-        <input
-          type="number"
-          class="form-control"
-          id="quantity"
-          formControlName="quantity"
-        />
+        <form [formGroup]="transactionForm">
+          <!-- nombre de la trasaccion -->
+          <div class="row">
+            <!-- Producto -->
+            <div class="col-6 col-md-12">
+              <div class="mb-3">
+                <label for="product" class="form-label">Producto *</label>
+                <select
+                  id="productID"
+                  class="form-select"
+                  formControlName="productID"
+                  required
+                >
+                  <option *ngFor="let p of products" [value]="p.productID">
+                    {{ p.name }}
+                  </option>
+                </select>
+                <!-- errors -->
+                <div
+                  *ngIf="productID?.invalid && (productID?.dirty || productID?.touched)"
+                  class="text-danger"
+                >
+                  <div *ngIf="productID?.errors?.['required']">
+                    Seleccione un producto
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tipo de Transacción y Cantidad en la misma fila -->
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="transactionType" class="form-label"
+                >Tipo de Transacción *</label
+              >
+              <select
+                id="transactionType"
+                class="form-select"
+                formControlName="transactionType"
+                required
+              >
+                <option value="Compra">Compra</option>
+                <option value="Venta">Venta</option>
+              </select>
+              <!-- errors -->
+              <div
+                *ngIf="transactionType?.invalid && (transactionType?.dirty || transactionType?.touched)"
+                class="text-danger"
+              >
+                <div *ngIf="transactionType?.errors?.['required']">
+                  seleccione un tipo
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="quantity" class="form-label">Cantidad *</label>
+              <input
+                type="number"
+                id="quantity"
+                class="form-control"
+                formControlName="quantity"
+                required
+                min="1"
+              />
+            </div>
+          </div>
+
+          <!-- Motivo -->
+          <div class="mb-3">
+            <label for="reason" class="form-label">Motivo *</label>
+            <textarea
+              id="reason"
+              class="form-control"
+              rows="2"
+              formControlName="detail"
+              placeholder="Describe el motivo de la transacción..."
+              required
+            ></textarea>
+            <!-- errors -->
+            <div
+              *ngIf="detail?.invalid && (detail?.dirty || detail?.touched)"
+              class="text-danger"
+            >
+              <div *ngIf="detail?.errors?.['required']">
+                Complete este campo
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="d-flex justify-content-end">
+            <button
+              type="button"
+              class="btn btn-outline-secondary me-2"
+              (click)="close()"
+            >
+              Cancelar
+            </button>
+            <button (click)="save()" type="submit" class="btn btn-dark">
+              Crear Transacción
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div class="mb-3">
-        <label for="unitPrice" class="form-label">Precio Unitario</label>
-        <input
-          type="number"
-          class="form-control"
-          id="unitPrice"
-          formControlName="unitPrice"
-        />
-      </div>
-
-      <div class="mb-3">
-        <label for="transactionType" class="form-label"
-          >Tipo de transaccion</label
-        >
-        <select
-          class="form-select"
-          id="transactionType"
-          formControlName="transactionType"
-        >
-          <option value="">Seleccione...</option>
-          <option value="Compra">Compra</option>
-          <option value="Venta">Venta</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label for="totalPrice" class="form-label">Precio Total</label>
-        <input
-          type="number"
-          class="form-control"
-          id="totalPrice"
-          formControlName="totalPrice"
-        />
-      </div>
-
-      <button
-        type="submit"
-        class="btn btn-primary"
-        [disabled]="productForm.invalid"
-      >
-        Guardar
-      </button>
-    </form>
+    </div>
   </div>
 </div>

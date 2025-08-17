@@ -5,9 +5,9 @@
     <h1>Transacciones de Inventario</h1>
     <p class="text-muted">Registra y monitorea movimientos de stock</p>
   </div>
-  <button class="btn btn-dark">
+  <button class="btn btn-dark" (click)="addTransaction()">
     <i class="bi bi-plus-lg"></i>
-    <span class="mx-2" (click)="addProduct()"> Nueva Transacción </span>
+    <span class="mx-2" > Nueva Transacción </span>
   </button>
 </div>
 <div class="container">
@@ -19,7 +19,18 @@
     </mat-card-header>
     <mat-card-content class="mt-3">
       <div class="row align-items-end mb-3">
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
+          <label for="searchInput" class="form-label">Producto</label>
+          <div class="input-group">
+            <select class="form-select" id="productType" [(ngModel)]="product">
+              <option value="all" selected>Todos los productos</option>
+              <option *ngFor="let p of products" [value]="p.productID">
+                {{ p.name }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
           <label for="searchInput" class="form-label"
             >Tipo de transacciòn</label
           >
@@ -29,13 +40,15 @@
               id="searchType"
               [(ngModel)]="searchType"
             >
-              <option value="Compra" selected>Compra</option>
+              <option value="all" selected>Todos los tipos</option>
+              <option value="Compra">Compra</option>
               <option value="Venta">Venta</option>
             </select>
-            <button class="btn btn-primary" type="button" (click)="search()">
-              <i class="bi bi-search"></i> Buscar
-            </button>
           </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label for="searchInput" class="form-label"></label>
+          <button class="btn btn-dark" (click)="applyFilters()">Buscar</button>
         </div>
       </div>
     </mat-card-content>
@@ -45,80 +58,77 @@
 <div class="container mt-4">
   <mat-card class="example-card" appearance="outlined">
     <mat-card-header>
-      <mat-card-subtitle> </mat-card-subtitle>
+      <mat-card-subtitle>
+        <i class="bi bi-box me-2"></i> Transacciones ({{totalTransactions}})
+      </mat-card-subtitle>
     </mat-card-header>
     <mat-card-content class="mt-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <input
-          type="text"
-          class="form-control w-25"
-          placeholder="Buscar..."
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="filterProducts()"
-        />
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Detalles</th>
+              <th scope="col">Producto</th>
+              <th scope="col">Cantidad</th>
+              <th scope="col">Precio U.</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Total</th>
+              <th scope="col">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let transaction of pagedTransactions; let i = index">
+              <td>{{ transaction.detail }}</td>
+              <td>{{ getProductName(transaction.productID) }}</td>
+              <td>{{ transaction.quantity }}</td>
+              <td>{{ transaction.unitPrice }}</td>
+              <td>{{ transaction.transactionType }}</td>
+              <td>{{ transaction.totalPrice }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-primary mx-2"
+                  (click)="editTransaction(transaction)"
+                >
+                  Editar
+                </button>
+                <button
+                  class="btn btn-sm btn-danger"
+                  (click)="deleteProduct(transaction.transactionID)"
+                >
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <nav class="d-flex justify-content-center mt-3">
+          <ul class="pagination">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <button
+                class="page-link"
+                (click)="prevPage()"
+                [disabled]="currentPage === 1"
+              >
+                Anterior
+              </button>
+            </li>
+            <li class="page-item disabled">
+              <span class="page-link"
+                >Página {{currentPage}} de {{totalPages}}</span
+              >
+            </li>
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <button
+                class="page-link"
+                (click)="nextPage()"
+                [disabled]="currentPage === totalPages"
+              >
+                Siguiente
+              </button>
+            </li>
+          </ul>
+        </nav>
       </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Detail</th>
-            <th scope="col">Quantity</th>
-            <th scope="col">UnitPrice</th>
-            <th scope="col">TransactionType</th>
-            <th scope="col">TotalPrice</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let transaction of pagedTransactions; let i = index">
-            <td>{{ transaction.detail }}</td>
-            <td>{{ transaction.quantity }}</td>
-            <td>{{ transaction.unitPrice }}</td>
-            <td>{{ transaction.transactionType }}</td>
-            <td>{{ transaction.totalPrice }}</td>
-            <td>
-              <button
-                class="btn btn-sm btn-primary mx-2"
-                (click)="editProduct(transaction)"
-              >
-                Editar
-              </button>
-              <button
-                class="btn btn-sm btn-danger"
-                (click)="deleteProduct(transaction.transactionID)"
-              >
-                Eliminar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <nav class="d-flex justify-content-center mt-3">
-        <ul class="pagination">
-          <li class="page-item" [class.disabled]="currentPage === 1">
-            <button
-              class="page-link"
-              (click)="prevPage()"
-              [disabled]="currentPage === 1"
-            >
-              Anterior
-            </button>
-          </li>
-          <li class="page-item disabled">
-            <span class="page-link"
-              >Página {{currentPage}} de {{totalPages}}</span
-            >
-          </li>
-          <li class="page-item" [class.disabled]="currentPage === totalPages">
-            <button
-              class="page-link"
-              (click)="nextPage()"
-              [disabled]="currentPage === totalPages"
-            >
-              Siguiente
-            </button>
-          </li>
-        </ul>
-      </nav>
     </mat-card-content>
   </mat-card>
 </div>

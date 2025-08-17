@@ -1,64 +1,157 @@
-<div class="container p-5">
-  <div class="col-6 col-md-12">
-    <h1>Agregar Producto</h1>
-    <form [formGroup]="productForm" (ngSubmit)="save()">
-      <div class="mb-3">
-        <label for="name" class="form-label">Nombre</label>
-        <input
-          type="text"
-          class="form-control"
-          id="name"
-          formControlName="name"
-        />
+<!-- Modal -->
+<div
+  class="modal fade show d-block"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="modalTitle"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 *ngIf="data.isAdd">Agregar Producto</h5>
+        <h5 *ngIf="!data.isAdd">editar Producto</h5>
+        <button
+          type="button"
+          class="btn-close"
+          aria-label="Close"
+          (click)="close() "
+        ></button>
       </div>
+      <div class="modal-body">
+        <form [formGroup]="productForm" >
+          <div class="row">
+            <!-- nombre, categoria -->
+            <div class="col-6 col-md-6">
+              <div class="mb-3">
+                <label for="name" class="form-label">Nombre</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="name"
+                  formControlName="name"
+                />
+                <!-- errors -->
+                <div
+                  *ngIf="name?.invalid && (name?.dirty || name?.touched)"
+                  class="text-danger"
+                >
+                  <div *ngIf="name?.errors?.['required']">
+                    Complete este campo
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- categoria -->
+            <div class="col-6 col-md-6">
+              <div class="mb-3">
+                <label for="category" class="form-label">Categoría</label>
+                <select
+                  id="category"
+                  class="form-select"
+                  formControlName="category"
+                >
+                  <option value="Laptops">Laptops</option>
+                  <option value="Telefonos">Telefonos</option>
+                  <option value="Monitores">Monitores</option>
+                  <option value="Impresoras">Impresoras</option>
+                </select>
+                <!-- errors -->
+                <div
+                  *ngIf="category?.invalid && (category?.dirty || category?.touched)"
+                  class="text-danger"
+                >
+                  <div *ngIf="name?.errors?.['required']">
+                    Seleccione una categoria
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- precio, stock -->
+          <div class="row">
+            <div class="col-6 col-md-6">
+              <div class="mb-3">
+                <label for="price" class="form-label">Precio</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="price"
+                  formControlName="price"
+                />
+                <!-- errors -->
+                <div
+                  *ngIf="price?.invalid && (price?.dirty || price?.touched)"
+                  class="text-danger"
+                >
+                  <div *ngIf="price?.errors?.['required']">
+                    Complete este campo
+                  </div>
+                  <div *ngIf="price?.errors?.['min']">
+                    El valor no puede ser menor a 0
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-6">
+              <div class="mb-3">
+                <label for="stock" class="form-label">Stock</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="stock"
+                  formControlName="stock"
+                />
+                <!-- errors -->
+                <div
+                  *ngIf="stock?.invalid && (stock?.dirty || stock?.touched)"
+                  class="text-danger"
+                >
+                  <div *ngIf="stock?.errors?.['required']">
+                    Complete este campo
+                  </div>
+                  <div *ngIf="stock?.errors?.['min']">
+                    El valor no puede ser menor a 1
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-      <div class="mb-3">
-        <label for="description" class="form-label">Descripción</label>
-        <textarea
-          class="form-control"
-          id="description"
-          rows="3"
-          formControlName="description"
-        ></textarea>
+          <div class="mb-3">
+            <label for="description" class="form-label">Descripción</label>
+            <textarea
+              class="form-control"
+              id="description"
+              rows="3"
+              formControlName="description"
+            ></textarea>
+            <!-- errors -->
+            <div
+              *ngIf="description?.invalid && (description?.dirty || description?.touched)"
+              class="text-danger"
+            >
+              <div *ngIf="description?.errors?.['required']">
+                Complete este campo
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones -->
+          <div class="d-flex justify-content-end">
+            <button
+              type="button"
+              class="btn btn-outline-secondary me-2"
+              (click)="close()"
+            >
+              Cancelar
+            </button>
+            <button (click)="save()" type="submit" class="btn btn-dark">
+              Agregar Producto
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div class="mb-3">
-        <label for="category" class="form-label">Categoría</label>
-        <input
-          type="text"
-          class="form-control"
-          id="category"
-          formControlName="category"
-        />
-      </div>
-
-      <div class="mb-3">
-        <label for="price" class="form-label">Precio</label>
-        <input
-          type="number"
-          class="form-control"
-          id="price"
-          formControlName="price"
-        />
-      </div>
-
-      <div class="mb-3">
-        <label for="stock" class="form-label">Stock</label>
-        <input
-          type="number"
-          class="form-control"
-          id="stock"
-          formControlName="stock"
-        />
-      </div>
-
-      <button
-        type="submit"
-        class="btn btn-primary"
-        [disabled]="productForm.invalid"
-      >
-        Agregar Producto
-      </button>
-    </form>
+    </div>
   </div>
 </div>

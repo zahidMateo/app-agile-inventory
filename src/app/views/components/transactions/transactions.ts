@@ -4,69 +4,80 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-import { Transactions, TransactionsService } from '../../../services/transactions.api.service';
+import { TransactionsService } from '../../../services/transactions.api.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AddComponent } from './add/add';
+import { Transactions } from '../../../../models/trasaction.model';
+import { ProductsService } from '../../../services/product.api.service';
+import { Product } from '../../../../models/product.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'zm-transactions',
-  imports: [MatTabsModule, MatCardModule, HttpClientModule, CommonModule, FormsModule],
+  imports: [
+    MatTabsModule,
+    MatCardModule,
+    HttpClientModule,
+    CommonModule,
+    FormsModule,
+  ],
   templateUrl: './transactions.html',
   styleUrl: './transactions.scss',
-  providers: [TransactionsService]
+  providers: [TransactionsService, ProductsService],
 })
 export class TransactionsComponent {
-
+  //#region properties
   totalTransactions: number = 0;
   transactions: Transactions[] = [];
   filteredTransactions: Transactions[] = [];
   pagedTransactions: Transactions[] = [];
+
+  products: Product[] = [];
   searchTerm: string = '';
   searchby: string = '';
   currentPage: number = 1;
   pageSize: number = 3;
-  searchType: string = 'name';
+  searchType: string = 'all';
+  product: string = 'all';
   totalPages: number = 1;
+  //#endregion
 
   /**
-   *
+   *Contructor
    */
-  constructor(private api: TransactionsService, private dialog: MatDialog) {
+  constructor(
+    private api: TransactionsService,
+    private dialog: MatDialog,
+    private apiProducts: ProductsService
+  ) {}
 
-  }
-
+  //#region initialization
   ngOnInit(): void {
     this.loadProducts();
+    this.loadTransactions();
   }
-
+  //#endregion
+  //#region methods
 
   loadProducts(): void {
-    this.api.getAllTransactions().subscribe({
+    this.apiProducts.getAllProducts().subscribe({
       next: (data) => {
-
-        this.transactions = data;
-        console.log("Transactions fetched successfully:", this.transactions);
-        this.filterProducts();
+        this.products = data;
       },
-      error: (err) => console.error('Error fetching transactions', err)
+      error: (err) => console.error('Error fetching products', err),
     });
   }
-
-  filterProducts(): void {
-    const term = this.searchTerm.trim().toLowerCase();
-    this.filteredTransactions = term
-      ? this.transactions.filter(t =>
-        t.detail.toLowerCase().includes(term) ||
-        (t.transactionType || '').toLowerCase().includes(term) ||
-        t.quantity.toString().includes(term) ||
-        t.unitPrice.toString().includes(term) ||
-        t.totalPrice.toString().includes(term)
-      )
-      : [...this.transactions];
-    this.totalTransactions = this.filteredTransactions.length;
-    this.totalPages = Math.max(1, Math.ceil(this.totalTransactions / this.pageSize));
-    this.currentPage = Math.min(this.currentPage, this.totalPages);
-    this.updatePagedProducts();
+  loadTransactions() {
+    this.api.getAllTransactions().subscribe({
+      next: (data) => {
+        this.transactions = data;
+        this.filteredTransactions = [...this.transactions];
+        this.totalTransactions = this.filteredTransactions.length;
+        this.totalPages = Math.ceil(this.totalTransactions / this.pageSize);
+        this.updatePagedProducts();
+      },
+      error: (err) => console.error('Error fetching transactions', err),
+    });
   }
 
   updatePagedProducts(): void {
@@ -89,68 +100,91 @@ export class TransactionsComponent {
     }
   }
 
+  applyFilters(): void {
+    const selectedProductId =
+      this.product === 'all' ? null : Number(this.product);
 
-  editProduct(transactions: Transactions): void {
-    const dialogRef = this.dialog.open(AddComponent, {
-      width: '500px',
-      data: { transactions }
+    this.filteredTransactions = this.transactions.filter((t) => {
+      const matchesProduct =
+        !selectedProductId || t.productID === selectedProductId;
+      const matchesType =
+        this.searchType === 'all' || t.transactionType === this.searchType;
+      return matchesProduct && matchesType;
     });
 
-    dialogRef.afterClosed().subscribe((result: Transactions | undefined) => {
-      if (result) {
-        console.log("result", result);
+    this.totalTransactions = this.filteredTransactions.length;
+    this.totalPages = Math.ceil(this.totalTransactions / this.pageSize);
+    this.currentPage = 1;
+    this.updatePagedProducts();
+  }
 
-        this.api.editTransaction(result).subscribe({
-          next: () => this.loadProducts(),
-          error: err => console.error('Error al editar', err)
+  getProductName(productId: number): string {
+    const product = this.products.find((p) => p.productID === productId);
+    return product ? product.name : 'Eliminado';
+  }
+
+  //#endregion
+  //#region actions
+
+  editTransaction(transaction: Transactions): void {
+
+    const dialogRef = this.dialog.open(AddComponent, {
+      width: '500px',
+      data: { transaction },
+    });
+
+    dialogRef.afterClosed().subscribe((resp) => {
+
+       if(!resp.result){
+          Swal.fire('Error', `Error: ${resp.message}`, 'error');
+          return;
+        }
+        this.loadTransactions();
+        Swal.fire('Guardado', 'La transacción ha sido guardado correctamente.', 'success');
+    });
+  }
+
+  addTransaction() {
+    const dialogRef = this.dialog.open(AddComponent, {
+      width: '500px',
+      data: { isAdd: true },
+    });
+
+    dialogRef.afterClosed().subscribe((resp) => {
+        if(!resp.result){
+          Swal.fire('Error', `Error: ${resp.message}`, 'error');
+          return;
+        }
+        this.loadTransactions();
+        Swal.fire('Guardado', 'La transacción ha sido guardado correctamente.', 'success');
+    });
+  }
+
+  deleteProduct(productId: number): void {
+    Swal.fire({
+      title: '¿Estás seguro?',
+      text: 'Esta acción eliminará permanentemente el rol.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Si, eliminar',
+      cancelButtonText: 'No, cancelar',
+      reverseButtons: false,
+      customClass: {
+        confirmButton: 'btn btn-danger',
+        cancelButton: 'btn btn-default',
+        denyButton: 'btn btn-danger',
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.api.deleteTransaction(productId).subscribe((resp:any)=>{
+          if(resp){
+              this.loadTransactions();
+            Swal.fire('Eliminado', 'La transacción ha sido eliminada.', 'success');
+          }
         });
       }
     });
   }
 
-  addProduct() {
-    const dialogRef = this.dialog.open(AddComponent, {
-      width: '500px',
-      data: { isAdd: true }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result.result) {
-        this.loadProducts();
-
-
-      }
-    });
-  }
-
-  deleteProduct(productId: number): void {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-
-    this.api.deleteTransaction(productId).subscribe({
-      next: () => {
-        console.log('Transactions deleted');
-        this.loadProducts();
-
-
-      },
-      error: (err) => console.error('Error deleting product', err)
-    });
-  }
-
-  search() {
-
-    if (this.searchType.trim() === '') {
-      this.loadProducts();
-      return;
-    }
-
-    this.api.getTransactionByFilter(this.searchType).subscribe({
-      next: (data) => {
-        this.transactions = data;
-        this.filterProducts();
-      },
-      error: (err) => console.error('Error ', err)
-    });
-  }
-
+  //#endregion
 }
