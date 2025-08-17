@@ -12,5 +12,10 @@ import { TransactionsComponent } from '../transactions/transactions';
   styleUrl: './init.scss'
 })
 export class InitComponent {
+activeTab = 0;
+
+onTabChange(event: any) {
+  this.activeTab = event.index;
+}
 
 }

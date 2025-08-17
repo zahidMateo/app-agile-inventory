@@ -79,6 +79,7 @@ export class ProductsComponent {
 
   //#region methods
   searchByFilter() {
+    this.loadProducts();
     const filters = this.formProducts.value;
 
     this.filteredProducts = this.products.filter((p) => {
